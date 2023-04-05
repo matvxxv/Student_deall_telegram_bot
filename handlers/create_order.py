@@ -54,18 +54,22 @@ async def new_order_in_db(message: types.Message, state: FSMContext):
         async with db_session() as session:
             session: AsyncSession
 
-            await session.merge(Order(
-                order_id = 1,
+            new_order = Order(
+                order_id = message.message_id,
                 user_id = message.from_user.id,
                 subject = data['subject'],
                 price = data['price'],
                 photo_id = data['photo'],
                 comment = data['comment']
-            ))
+            )
 
+            await session.merge(new_order)
             await session.commit()
+
+            order_id = new_order.order_id
+
             await message.answer(f'Задача отправлена в чат исполнителей!\n\n'
-                                     f'<b>Номер вашего заказа: {Order.order_id}</b>')
+                                 f'<b>Номер вашего заказа: {order_id}</b>')
 
             message_to_chat = f"<b>Предмет:</b> {data['subject']}\n" \
                               f"<b>Прайс:</b> {data['price']}\n" \
